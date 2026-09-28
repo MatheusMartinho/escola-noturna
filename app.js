@@ -228,9 +228,14 @@ function vHoje(){
   h+=`</div></div>`;
   return h;
 }
+function moonSvg(p,S){
+  p=Math.max(0,Math.min(1,p||0)); const c=S/2, R=S/2-1.5, rx=Math.abs(1-2*p)*R, sw=p<.5?0:1;
+  const lit = p<.005 ? '' : p>.995 ? `<circle class="lit" cx="${c}" cy="${c}" r="${R}" fill="var(--moon)"/>` : `<path class="lit" d="M${c},${c-R} A${R},${R} 0 0 1 ${c},${c+R} A${rx},${R} 0 0 ${sw} ${c},${c-R} Z" fill="var(--moon)"/>`;
+  return `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" aria-hidden="true"><circle cx="${c}" cy="${c}" r="${R}" fill="var(--moon-dark)" stroke="var(--line-2)" stroke-width="1"/>${lit}</svg>`;
+}
 function ringSvg(p,label){
-  const R=38,C=2*Math.PI*R;
-  return `<div class="ring" data-tip="Checklist de hoje: ${label}"><svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="46" cy="46" r="${R}" fill="none" stroke="var(--good)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}"/></svg><b class="num">${Math.round(p*100)}%</b></div>`;
+  const pc=Math.round(p*100);
+  return `<div class="lua" data-tip="Checklist de hoje: ${label}. A lua enche conforme você marca.">${moonSvg(p,84)}<div class="lua-t"><b class="num">${pc}%</b><span>${p>=1?'lua cheia: dia completo':'do dia feito ('+label+')'}</span></div></div>`;
 }
 function strip(now){
   const m=monday(now); let h='<div class="strip">';
@@ -238,7 +243,7 @@ function strip(now){
     const d=addDays(m,i), ds=ymd(d), items=buildDay(d,cfg).filter(b=>b.key), l=dayLog(ds);
     const done=items.filter(b=>b.key==='academia'? !!l.academia : l[b.key]>0).length;
     const p=items.length? done/items.length:0;
-    h+=`<div class="sd${ds===ymd(now)?' today':''}" data-tip="${DOW[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}: ${done} de ${items.length} itens · ${hm(studyMin(l))} de estudo">${DOW[d.getDay()]}<b class="num">${d.getDate()}</b><div class="bar"><i style="width:${p*100}%"></i></div></div>`;
+    h+=`<div class="sd${ds===ymd(now)?' today':''}" data-tip="${DOW[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}: ${done} de ${items.length} itens · ${hm(studyMin(l))} de estudo">${DOW[d.getDay()]}<b class="num">${d.getDate()}</b>${moonSvg(p,26)}</div>`;
   }
   return h+'</div>';
 }
@@ -345,7 +350,7 @@ function heatmap(){
       h+=`<span class="c ${fut?'fut':'l'+lv}${ds===todayStr()?' tdy':''}" data-tip="${DOW[d.getDay()]} ${d.getDate()} ${MES[d.getMonth()]}: ${fut?'ainda não chegou':m?hm(m)+' de estudo':'sem estudo registrado'}${l.academia?' · treinou':''}${(l.aulas||[]).length?' · '+l.aulas.join(', '):''}"></span>`;
     }
   }
-  h+=`</div></div><div class="hm-legend">menos <span class="c" style="background:var(--surface-2)"></span><span class="c" style="background:color-mix(in srgb,var(--tec) 25%,var(--surface-2))"></span><span class="c" style="background:color-mix(in srgb,var(--tec) 50%,var(--surface-2))"></span><span class="c" style="background:color-mix(in srgb,var(--tec) 75%,var(--surface-2))"></span><span class="c" style="background:var(--tec)"></span> mais</div>`;
+  h+=`</div></div><div class="hm-legend">menos <span class="c l0"></span><span class="c l1"></span><span class="c l2"></span><span class="c l3"></span><span class="c l4"></span> mais</div>`;
   return h;
 }
 function weekBars(){
@@ -423,6 +428,7 @@ function render(){
   const el=document.getElementById('view');
   if(view==='rotina' && draftDirty) { refreshPreview(); return; }
   el.innerHTML = view==='hoje'?vHoje(): view==='semana'?vSemana(): view==='grade'?vGrade(): view==='progresso'?vProgresso(): vRotina();
+  if(window.__lv!==view){ el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); window.__lv=view; }
 }
 
 document.addEventListener('click', e=>{
