@@ -205,7 +205,7 @@ function vHoje(){
   let h='';
   if(!cfg.confirmado) h+=`<div class="banner"><span><b>Rotina de exemplo.</b> Trabalho das 9h às 18h e academia seg, ter, qui e sex às 18h30 são palpites meus. Ajuste para os seus horários reais.</span><button class="btn small primary" data-act="tab" data-tab="rotina">Ajustar minha rotina</button></div>`;
   h+=`<div class="hero"><div><p class="eyebrow">${DOWL[now.getDay()]}, ${now.getDate()} de ${MES[now.getMonth()]} · ${wk<1?`a grade começa em ${daysBetween(parseYmd(ds),parseYmd(cfg.inicio))} dias`:`semana ${wk} da grade`}</p><h2>${title}</h2></div>
-  <div class="hero-stats"><div class="stat-inline"><b class="num">${streak}</b><span>dias seguidos<br>estudando</span></div>${ringSvg(pct, `${done}/${tot}`)}</div></div>`;
+  <div class="hero-stats"><div class="stat-inline"><b class="num">${streak}</b><span>dias seguidos</span></div>${ringSvg(pct, `${done}/${tot}`)}</div></div>`;
   h+=`<div class="hoje-grid"><div class="card"><h2>Seu dia<small>${fmt(r0)}–${fmt(r1)}</small></h2>${timeline(blocks,{ppm:.78,r0,r1,log:l,proj,ds,now:now.getHours()*60+now.getMinutes()})}</div><div class="col">`;
   h+=`<div class="card"><h2>Checklist de hoje<small>toque para marcar</small></h2><div class="check">`;
   if(!tot) h+=`<p class="muted" style="margin:0">Nada planejado para hoje. Descanso também é parte do plano.</p>`;
@@ -228,14 +228,12 @@ function vHoje(){
   h+=`</div></div>`;
   return h;
 }
-function moonSvg(p,S){
-  p=Math.max(0,Math.min(1,p||0)); const c=S/2, R=S/2-1.5, rx=Math.abs(1-2*p)*R, sw=p<.5?0:1;
-  const lit = p<.005 ? '' : p>.995 ? `<circle class="lit" cx="${c}" cy="${c}" r="${R}" fill="var(--moon)"/>` : `<path class="lit" d="M${c},${c-R} A${R},${R} 0 0 1 ${c},${c+R} A${rx},${R} 0 0 ${sw} ${c},${c-R} Z" fill="var(--moon)"/>`;
-  return `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" aria-hidden="true"><circle cx="${c}" cy="${c}" r="${R}" fill="var(--moon-dark)" stroke="var(--line-2)" stroke-width="1"/>${lit}</svg>`;
+function gaugeSvg(p,S,w){
+  p=Math.max(0,Math.min(1,p||0)); const c=S/2, r=S/2-w, C=2*Math.PI*r;
+  return `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" aria-hidden="true" style="transform:rotate(-90deg)"><circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--line-2)" stroke-width="${w}"/><circle class="arc" cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${p>=1?'var(--good)':'var(--ink)'}" stroke-width="${w}" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}"/></svg>`;
 }
 function ringSvg(p,label){
-  const pc=Math.round(p*100);
-  return `<div class="lua" data-tip="Checklist de hoje: ${label}. A lua enche conforme você marca.">${moonSvg(p,84)}<div class="lua-t"><b class="num">${pc}%</b><span>${p>=1?'lua cheia: dia completo':'do dia feito ('+label+')'}</span></div></div>`;
+  return `<div class="gauge" data-tip="Checklist de hoje: ${label}">${gaugeSvg(p,52,3)}<div class="gauge-t"><b class="num">${Math.round(p*100)}%</b><span>checklist · ${label}</span></div></div>`;
 }
 function strip(now){
   const m=monday(now); let h='<div class="strip">';
@@ -243,7 +241,7 @@ function strip(now){
     const d=addDays(m,i), ds=ymd(d), items=buildDay(d,cfg).filter(b=>b.key), l=dayLog(ds);
     const done=items.filter(b=>b.key==='academia'? !!l.academia : l[b.key]>0).length;
     const p=items.length? done/items.length:0;
-    h+=`<div class="sd${ds===ymd(now)?' today':''}" data-tip="${DOW[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}: ${done} de ${items.length} itens · ${hm(studyMin(l))} de estudo">${DOW[d.getDay()]}<b class="num">${d.getDate()}</b>${moonSvg(p,26)}</div>`;
+    h+=`<div class="sd${ds===ymd(now)?' today':''}" data-tip="${DOW[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}: ${done} de ${items.length} itens · ${hm(studyMin(l))} de estudo">${DOW[d.getDay()]}<b class="num">${d.getDate()}</b>${gaugeSvg(p,22,2)}</div>`;
   }
   return h+'</div>';
 }
