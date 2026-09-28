@@ -57,7 +57,7 @@ function buildDay(date, c){
   if(work) B.push({k:'work',ini:ws,fim:we,label:'Trabalho',sub:'Varejo Consolidado'});
   if(gym) B.push({k:'gym',ini:gs,fim:ge,label:'Academia',key:'academia'});
   let cur;
-  if(work){ B.push({k:'com',ini:we,fim:we+10,label:'Gravação',sub:'3 min explicando algo do dia',key:'gravacao',min:10}); cur=we+10; if(gym && gs>=we-30) cur=Math.max(cur,ge); }
+  if(work){ B.push({k:'com',ini:we,fim:we+10,label:'Retórica',sub:'ler em voz alta o roteiro da aula',key:'gravacao',min:10}); cur=we+10; if(gym && gs>=we-30) cur=Math.max(cur,ge); }
   else { cur=15*60; if(gym && gs<cur+180 && ge>cur-60) cur=Math.max(cur,ge); if(hasLab){ const le=toMin(c.lab.ini)+(+c.lab.dur||0); if(le>cur-60 && toMin(c.lab.ini)<cur+120) cur=Math.max(cur, le+60); } }
   const evening = hasT||hasC||(c.alemao.quando==='noite');
   if(work && evening && +c.jantar>0){ B.push({k:'pause',ini:cur,fim:cur+ +c.jantar,label:'Jantar e pausa'}); cur+= +c.jantar; }
@@ -236,7 +236,7 @@ function strip(now){
   }
   return h+'</div>';
 }
-function legend(){ return `<div class="legend">${[['--work','Trabalho'],['--gym','Academia'],['--tec','Aula técnica'],['--com','Comunicação e gravação'],['--lab','Laboratório'],['--ale','Alemão'],['--pause','Pausa']].map(([k,t])=>`<span><i style="--k:var(${k})"></i>${t}</span>`).join('')}</div>`; }
+function legend(){ return `<div class="legend">${[['--work','Trabalho'],['--gym','Academia'],['--tec','Aula técnica'],['--com','Comunicação e retórica'],['--lab','Laboratório'],['--ale','Alemão'],['--pause','Pausa']].map(([k,t])=>`<span><i style="--k:var(${k})"></i>${t}</span>`).join('')}</div>`; }
 function weekGrid(c, m, proj, ppm){
   const days=[...Array(7)].map((_,i)=>addDays(m,i)); const bl=days.map(d=>buildDay(d,c));
   const [r0,r1]=range(bl), H=(r1-r0)*ppm, td=todayStr();
