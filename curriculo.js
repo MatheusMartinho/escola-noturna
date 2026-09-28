@@ -45,6 +45,7 @@ const RAW = [
  ['T31','T',3,'Dados em escala','IA no produto: previsão de demanda, linha de base sazonal, medir o erro','Precisa de modelo de ML ou de uma média bem feita?','Linha de base de previsão com os dados do teste',34],
  ['T32','T',3,'Dados em escala','Design de sistema: projetar o VC Entende do zero','Integra tudo','Documento de design + 3 ADRs',36],
  ['P5','T',3,'Dados em escala','Prova 5: defender o design do VC Entende','Você pensa no sistema inteiro','Apresentar ao Kauã e defender as escolhas',38],
+ ['C0','C','C','Aula zero','Fundamentos da retórica: história, 3 pilares, 5 cânones e pausas','A base para todas as aulas de comunicação','Roteiro 1 animado: stack, heap e GC',1],
  ['C1','C','C','A · Por que a comunicação funciona','Por que a gente trava: memória de trabalho e nervosismo','Estruturas prontas liberam a cabeça','Gravar 3 respostas com os formatos do Pilar 3',1],
  ['C2','C','C','A · Por que a comunicação funciona','Princípio da Pirâmide (Barbara Minto) e SCQA','Conclusão primeiro, argumentos agrupados embaixo','Reescrever um e-mail e uma fala sua',2],
  ['C3','C','C','A · Por que a comunicação funciona','Retórica de Aristóteles: ethos, pathos, logos','Propor uma decisão técnica que convence','Gravar a proposta do exercício-ponte em 2 min',3],

@@ -1,12 +1,12 @@
 /* Escola Noturna — rotina, checklist, grade e progresso */
 /* ---------- Rotina padrão (exemplo até você ajustar) ---------- */
 const DEFAULT_CFG = {
-  inicio:'2026-10-05',
+  inicio:'2026-09-28',
   trabalho:{dias:[1,2,3,4,5], ini:'09:00', fim:'18:00'},
   academia:{dias:[1,2,4,5], ini:'18:30', dur:75},
   alemao:{quando:'manha', dur:30},
   aulaT:{dias:[1,3], dur:75},
-  aulaC:{dias:[5], dur:60},
+  aulaC:{dias:[2], dur:60},
   lab:{dias:[6], ini:'10:00', dur:120},
   jantar:40, dormir:'23:30', confirmado:false
 };
@@ -57,7 +57,7 @@ function buildDay(date, c){
   if(work) B.push({k:'work',ini:ws,fim:we,label:'Trabalho',sub:'Varejo Consolidado'});
   if(gym) B.push({k:'gym',ini:gs,fim:ge,label:'Academia',key:'academia'});
   let cur;
-  if(work){ B.push({k:'com',ini:we,fim:we+10,label:'Retórica',sub:'ler em voz alta o roteiro da aula',key:'gravacao',min:10}); cur=we+10; if(gym && gs>=we-30) cur=Math.max(cur,ge); }
+  if(work){ cur=we; if(gym && gs>=we-30) cur=Math.max(cur,ge); }
   else { cur=15*60; if(gym && gs<cur+180 && ge>cur-60) cur=Math.max(cur,ge); if(hasLab){ const le=toMin(c.lab.ini)+(+c.lab.dur||0); if(le>cur-60 && toMin(c.lab.ini)<cur+120) cur=Math.max(cur, le+60); } }
   const evening = hasT||hasC||(c.alemao.quando==='noite');
   if(work && evening && +c.jantar>0){ B.push({k:'pause',ini:cur,fim:cur+ +c.jantar,label:'Jantar e pausa'}); cur+= +c.jantar; }
@@ -170,7 +170,7 @@ function timeline(blocks, opts){
   const l=opts.log||{};
   for(const b of blocks){
     const top=(b.ini-r0)*ppm, ht=Math.max(16,(b.fim-b.ini)*ppm);
-    const done = b.key ? (b.key==='academia'? !!l.academia : (l[b.key]>0)) : false;
+    const done = b.extra ? true : b.key ? (b.key==='academia'? !!l.academia : (l[b.key]>0)) : false;
     const code = opts.proj && opts.proj[opts.ds+b.key];
     const lbl = code ? `${b.label} · ${code}` : b.label;
     const tipTxt=`${lbl} · ${fmt(b.ini)}–${fmt(b.fim)}${b.conf?' · conflito com outro bloco':''}${b.late?' · passa do horário limite':''}`;
@@ -189,27 +189,33 @@ function range(blocksList){
 function vHoje(){
   const now=new Date(), ds=ymd(now), blocks=buildDay(now,cfg), l=dayLog(ds);
   const proj=projection(addDays(monday(now),6));
+  const shown=new Set([proj[ds+'aulaT'],proj[ds+'aulaC']].filter(Boolean));
+  const extras=CAT.filter(x=>status(x.id)==='feita'&&prog.data[x.id]===ds&&!shown.has(x.id));
+  let endT=Math.max(20*60,...blocks.filter(b=>b.k!=='work').map(b=>b.fim));
+  extras.forEach(x=>{const du=x.trilha==='C'?60:75;blocks.push({k:x.trilha==='C'?'com':'tec',ini:endT+5,fim:endT+5+du,label:(x.trilha==='C'?'Aula de comunicação':'Aula técnica')+' · '+x.id,extra:x.id});endT+=5+du;});
   const items=blocks.filter(b=>b.key);
-  const done=items.filter(b=>b.key==='academia'? !!l.academia : l[b.key]>0).length;
-  const wk=weekIdx(now), pct=items.length? done/items.length : 0;
+  const done=items.filter(b=>b.key==='academia'? !!l.academia : l[b.key]>0).length+extras.length;
+  const tot=items.length+extras.length;
+  const wk=weekIdx(now), pct=tot? done/tot : 0;
   const nT=pendingList('T')[0], nC=pendingList('C')[0];
-  const main=[proj[ds+'aulaT'], proj[ds+'aulaC']].filter(Boolean);
+  const main=[proj[ds+'aulaT'], proj[ds+'aulaC'], ...extras.map(x=>x.id)].filter(Boolean);
   const title = main.length ? `Hoje: <em>${main.join(' + ')}</em>${items.some(b=>b.key==='alemao')?' e alemão':''}` : (items.length? 'Hoje: rotina leve' : 'Hoje: descanso');
   const [r0,r1]=range([blocks]);
   const streak=calcStreak();
   let h='';
   if(!cfg.confirmado) h+=`<div class="banner"><span><b>Rotina de exemplo.</b> Trabalho das 9h às 18h e academia seg, ter, qui e sex às 18h30 são palpites meus. Ajuste para os seus horários reais.</span><button class="btn small primary" data-act="tab" data-tab="rotina">Ajustar minha rotina</button></div>`;
   h+=`<div class="hero"><div><p class="eyebrow">${DOWL[now.getDay()]}, ${now.getDate()} de ${MES[now.getMonth()]} · ${wk<1?`a grade começa em ${daysBetween(parseYmd(ds),parseYmd(cfg.inicio))} dias`:`semana ${wk} da grade`}</p><h2>${title}</h2></div>
-  <div class="hero-stats"><div class="stat-inline"><b class="num">${streak}</b><span>dias seguidos<br>estudando</span></div>${ringSvg(pct, `${done}/${items.length}`)}</div></div>`;
+  <div class="hero-stats"><div class="stat-inline"><b class="num">${streak}</b><span>dias seguidos<br>estudando</span></div>${ringSvg(pct, `${done}/${tot}`)}</div></div>`;
   h+=`<div class="hoje-grid"><div class="card"><h2>Seu dia<small>${fmt(r0)}–${fmt(r1)}</small></h2>${timeline(blocks,{ppm:.78,r0,r1,log:l,proj,ds,now:now.getHours()*60+now.getMinutes()})}</div><div class="col">`;
   h+=`<div class="card"><h2>Checklist de hoje<small>toque para marcar</small></h2><div class="check">`;
-  if(!items.length) h+=`<p class="muted" style="margin:0">Nada planejado para hoje. Descanso também é parte do plano.</p>`;
+  if(!tot) h+=`<p class="muted" style="margin:0">Nada planejado para hoje. Descanso também é parte do plano.</p>`;
   for(const b of items){
     const on = b.key==='academia'? !!l.academia : l[b.key]>0;
     const code = proj[ds+b.key];
     const sub = code ? BYID[code].titulo : (b.sub || (b.min? hm(b.min):''));
     h+=`<button class="ci" style="--k:var(${KIND[b.k]})" aria-pressed="${on}" data-act="toggle" data-key="${b.key}"><span class="box"></span><span class="lbl"><b>${esc(b.label)}${code?` · ${code}`:''}</b><small>${esc(sub)}</small></span><span class="t">${fmt(b.ini)}</span></button>`;
   }
+  for(const x of extras) h+=`<button class="ci" style="--k:${kOf(x)}" aria-pressed="true" data-act="open" data-id="${x.id}"><span class="box"></span><span class="lbl"><b>${x.trilha==='C'?'Aula de comunicação':'Aula técnica'} · ${x.id}</b><small>${esc(x.titulo)} · aula extra</small></span><span class="t">feita</span></button>`;
   h+=`</div></div>`;
   h+=`<div class="card"><h2>Próximas aulas<small>peça no chat do Claude</small></h2><div class="next">`;
   for(const [n,lab] of [[nT,'Técnica'],[nC,'Comunicação']]){
@@ -236,7 +242,7 @@ function strip(now){
   }
   return h+'</div>';
 }
-function legend(){ return `<div class="legend">${[['--work','Trabalho'],['--gym','Academia'],['--tec','Aula técnica'],['--com','Comunicação e retórica'],['--lab','Laboratório'],['--ale','Alemão'],['--pause','Pausa']].map(([k,t])=>`<span><i style="--k:var(${k})"></i>${t}</span>`).join('')}</div>`; }
+function legend(){ return `<div class="legend">${[['--work','Trabalho'],['--gym','Academia'],['--tec','Aula técnica'],['--com','Aula de comunicação'],['--lab','Laboratório'],['--ale','Alemão'],['--pause','Pausa']].map(([k,t])=>`<span><i style="--k:var(${k})"></i>${t}</span>`).join('')}</div>`; }
 function weekGrid(c, m, proj, ppm){
   const days=[...Array(7)].map((_,i)=>addDays(m,i)); const bl=days.map(d=>buildDay(d,c));
   const [r0,r1]=range(bl), H=(r1-r0)*ppm, td=todayStr();
