@@ -10,7 +10,7 @@ Site estático: HTML, CSS e JavaScript puro, sem build e sem dependências.
 | --- | --- |
 | Hoje | Linha do tempo do dia, checklist e as próximas aulas |
 | Semana | Agenda da semana em cores, com avisos de conflito e de horário |
-| Grade de aulas | As 55 aulas com status, a próxima destacada e as atrasadas marcadas |
+| Grade de aulas | As 61 aulas com status, a próxima destacada e as atrasadas marcadas |
 | Progresso | Calendário de estudo, horas por semana, ritmo da grade e horas de alemão |
 | Minha rotina | Horários de trabalho, academia e aulas, e o backup |
 
